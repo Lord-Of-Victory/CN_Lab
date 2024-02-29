@@ -5,13 +5,13 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TCPClient {
+public class TCPClientByteStuffing {
     private Socket socket = null;
     private DataInputStream input = null;
     private DataOutputStream out = null;
 
     // constructor to put ip address and port
-    public TCPClient(String address, int port) {
+    public TCPClientByteStuffing(String address, int port) {
         // establish a connection
         try {
             socket = new Socket(address, port);
@@ -36,24 +36,22 @@ public class TCPClient {
                 // SEND to Server
                 System.out.printf(">> ");
                 line = input.readLine();
-                List<String> sendArray=inputToArray(line);
-                // stuffedLine = byteStuffing(line);
-                for (int i = 0; i < sendArray.size(); i++) {
-                    String iStr=sendArray.get(i);
-                    out.writeUTF(iStr);
+
+                if (line.equals("END") || line.equals("/")) {//
+                    out.writeUTF(line);//
+                } //
+                else {
+
+                    List<String> sendArray = inputToArray(line);
+                    // stuffedLine = byteStuffing(line);
+                    for (int i = 0; i < sendArray.size(); i++) {
+                        String iStr = sendArray.get(i);
+                        out.writeUTF(iStr);
+                    }
                 }
                 if (line.equals("END")) {//
                     break;//
                 } //
-
-                // // READ From Server
-                // DataInputStream in = new DataInputStream(new
-                // BufferedInputStream(socket.getInputStream()));//
-                // anLine = in.readUTF();//
-                // System.out.println("Server>> " + anLine);//
-                // if (anLine.equals("END")) {//
-                // break;//
-                // } //
 
             } catch (IOException i) {
                 System.out.println(i);
@@ -96,31 +94,29 @@ public class TCPClient {
         if (rem > 0) {
             framesNumber += 1;
         }
-        
+
         int index = 0;
         while (index < inputString.length()) {
             strArray.add(inputString.substring(index, Math.min(index + 6, inputString.length())));
             index += 6;
         }
-        int lastIndex=framesNumber-1;
-        System.out.println(strArray.get(lastIndex));
+        int lastIndex = framesNumber - 1;
         if (strArray.get(lastIndex).length() < 6) {
-            String str=strArray.get(lastIndex);
-            for (int i=0;i<6-rem;i++){
-                str=str+'X';
+            String str = strArray.get(lastIndex);
+            for (int i = 0; i < 6 - rem; i++) {
+                str = str + '\0';
             }
             strArray.set(lastIndex, str);
         }
-        System.out.println(strArray);
-        
-        for (int i=0;i<framesNumber;i++) {
+
+        for (int i = 0; i < framesNumber; i++) {
             strArray.set(i, byteStuffing(strArray.get(i)));
         }
-        System.out.println(strArray);
+        System.out.println("Byte Stuffed Data :" + strArray);
         return strArray;
     }
 
     public static void main(String args[]) {
-        TCPClient client = new TCPClient("127.0.0.1", 5000);
+        TCPClientByteStuffing client = new TCPClientByteStuffing("127.0.0.1", 5000);
     }
 }

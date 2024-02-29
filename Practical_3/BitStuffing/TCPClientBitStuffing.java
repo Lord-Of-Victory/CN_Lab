@@ -1,6 +1,3 @@
-
-// package BitStuffing;
-
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -30,33 +27,28 @@ public class TCPClientBitStuffing {
         }
         String line = "";
         String stuffedLine = "";
-        // String anLine = "";//
 
         while (true) {
             try {
                 // SEND to Server
-                System.out.println("Enter data (in bits Format) >> ");
-                // System.out.printf(" ");
+                System.out.printf("Enter data(in bits) >> ");
                 line = input.readLine();
-                List<String> sendArray = inputToArray(line);
-                // stuffedLine = byteStuffing(line);
-                for (int i = 0; i < sendArray.size(); i++) {
-                    String iStr = sendArray.get(i);
-                    out.writeUTF(iStr);
+
+                if (line.equals("END") || line.equals("/")) {//
+                    out.writeUTF(line);//
+                } //
+                else {
+
+                    List<String> sendArray = inputToArray(line);
+                    // stuffedLine = byteStuffing(line);
+                    for (int i = 0; i < sendArray.size(); i++) {
+                        String iStr = sendArray.get(i);
+                        out.writeUTF(iStr);
+                    }
                 }
                 if (line.equals("END")) {//
                     break;//
                 } //
-
-                // // READ From Server
-                // DataInputStream in = new DataInputStream(new
-                // BufferedInputStream(socket.getInputStream()));//
-                // anLine = in.readUTF();//
-                // System.out.println("Server>> " + anLine);//
-                // if (anLine.equals("END")) {//
-                // break;//
-                // } //
-
             } catch (IOException i) {
                 System.out.println(i);
             }
@@ -74,8 +66,6 @@ public class TCPClientBitStuffing {
 
     public String bitStuffing(String inputData) {
         // Takes input of unstuffed data from user
-        // Scanner sc=new Scanner(null)
-        
         String data = inputData;
         int count = 0;
         String resultString = "";
@@ -100,7 +90,7 @@ public class TCPClientBitStuffing {
         // add flag byte in the beginning
         // and end of stuffed data
         String flag = "01111110";
-        resultString =  flag + resultString + flag;
+        resultString = flag + resultString + flag;
         return resultString;
     }
 
@@ -118,20 +108,18 @@ public class TCPClientBitStuffing {
             index += 6;
         }
         int lastIndex = framesNumber - 1;
-        System.out.println(strArray.get(lastIndex));
         if (strArray.get(lastIndex).length() < 6) {
             String str = strArray.get(lastIndex);
             for (int i = 0; i < 6 - rem; i++) {
-                str = str + '0';
+                str = str + '\0';
             }
             strArray.set(lastIndex, str);
         }
-        System.out.println(strArray);
 
         for (int i = 0; i < framesNumber; i++) {
             strArray.set(i, bitStuffing(strArray.get(i)));
         }
-        System.out.println(strArray);
+        System.out.println("Bit Stuffed Data:" + strArray);
         return strArray;
     }
 

@@ -1,15 +1,17 @@
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 // import java.util.Scanner;
 import java.io.*;
 
-public class TCPServer {
+public class TCPServerByteStuffing {
     // initialize socket and input stream
     private Socket socket = null;
     private ServerSocket server = null;
     private DataInputStream in = null;
 
     // constructor with port
-    public TCPServer(int port) {
+    public TCPServerByteStuffing(int port) {
         // starts server and waits for a connection
         try {
             server = new ServerSocket(port);
@@ -20,31 +22,36 @@ public class TCPServer {
             // takes input from the client socket
             in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 
-            // Initializing another input and out to send Messages
-            // DataInputStream input = new DataInputStream(System.in); //
-            // DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            ;//
-            String line = "";
-            // String anLine = "";//
+            List<String> lineArray = new ArrayList<String>();
+            String line = "";//
 
             // reads message from client until "END" is sent
             while (true) {
                 try {
                     // READ From Client
-                    line = in.readUTF();
-                    System.out.println("Client>> " + line);
-                    if (line.equals("END")) {//
+                    Boolean flag = true;
+                    do {
+                        line = in.readUTF();
+                        if (line.equals("/")) {
+                            flag = false;
+                            break;
+                        }
+
+                        if (line.equals("END")) {
+                            flag = false;
+                            lineArray.add(line);
+                            break;
+                        }
+                        lineArray.add(line);
+                    } while (flag);
+                    System.out.println("Recieved from Client>> " + lineArray);
+                    handleClientMessage(lineArray);
+                    if (lineArray.get(lineArray.size() - 1).equals("END")) {//
                         break;//
                     } //
-                    //   // SEND to Client
-                    // System.out.printf(">> ");//
-                    // anLine = input.readLine();//
-                    // out.writeUTF(anLine);//
-                    // if (anLine.equals("END")) {//
-                    //     break;//
-                    // } //
-                } catch (IOException i) {
-                    System.out.println(i);
+                    lineArray.clear();
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
                 }
             }
             System.out.println("-----Closing connection-----");
@@ -56,7 +63,59 @@ public class TCPServer {
         }
     }
 
+    public String byteDestuffing(String inputData) {
+        String data = inputData;
+        StringBuilder res = new StringBuilder();
+
+        for (int i = 0; i < data.length(); i++) {
+            // If 'E' is encountered, skip it and check the next character
+            if (data.charAt(i) == 'E') {
+                i++;
+                // If 'F' is encountered after 'E', then add 'F' to the result
+                if (i < data.length() && data.charAt(i) == 'F') {
+                    res.append('F');
+                }
+                // If 'E' is encountered after 'E', then add 'E' to the result
+                else if (i < data.length() && data.charAt(i) == 'E') {
+                    res.append('E');
+                }
+            }
+            // If 'F' is encountered, skip it
+            else if (data.charAt(i) == 'F') {
+                continue;
+            }
+            // Otherwise, add the character to the result
+            else {
+                res.append(data.charAt(i));
+            }
+        }
+        return res.toString();
+    }
+
+    public void handleClientMessage(List<String> messages) {
+        List<String> destuffedMessages = new ArrayList<>();
+        for (String message : messages) {
+            destuffedMessages.add(byteDestuffing(message));
+        }
+        System.out.println("Destuffed Message>> " + elemToStr(destuffedMessages));
+    }
+
+    public String elemToStr(List<String> destuffedMessages) {
+        StringBuilder result = new StringBuilder();
+        for (String str : destuffedMessages) {
+            result.append(str); // Append each string
+        }
+
+        // Remove the last space
+        if (result.length() > 0) {
+            result.setLength(result.length() - 1);
+        }
+
+        // Print the result
+        return result.toString();
+    }
+
     public static void main(String args[]) {
-        TCPServer server = new TCPServer(5000);
+        TCPServerByteStuffing server = new TCPServerByteStuffing(5000);
     }
 }

@@ -1,5 +1,6 @@
 import java.net.*;
-// import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.*;
 
 public class TCPServerBitStuffing {
@@ -20,31 +21,36 @@ public class TCPServerBitStuffing {
             // takes input from the client socket
             in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 
-            // Initializing another input and out to send Messages
-            // DataInputStream input = new DataInputStream(System.in); //
-            // DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            ;//
-            String line = "";
-            // String anLine = "";//
+            List<String> lineArray = new ArrayList<String>();
+            String line = "";//
 
             // reads message from client until "END" is sent
             while (true) {
                 try {
                     // READ From Client
-                    line = in.readUTF();
-                    System.out.println("Client>> " + line);
-                    if (line.equals("END")) {//
+                    Boolean flag = true;
+                    do {
+                        line = in.readUTF();
+                        if (line.equals("/")) {
+                            flag = false;
+                            break;
+                        }
+
+                        if (line.equals("END")) {
+                            flag = false;
+                            lineArray.add(line);
+                            break;
+                        }
+                        lineArray.add(line);
+                    } while (flag);
+                    System.out.println("Recieved from Client>> " + lineArray);
+                    handleClientMessage(lineArray);
+                    if (lineArray.get(lineArray.size() - 1).equals("END")) {//
                         break;//
                     } //
-                    //   // SEND to Client
-                    // System.out.printf(">> ");//
-                    // anLine = input.readLine();//
-                    // out.writeUTF(anLine);//
-                    // if (anLine.equals("END")) {//
-                    //     break;//
-                    // } //
-                } catch (IOException i) {
-                    System.out.println(i);
+                    lineArray.clear();
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
                 }
             }
             System.out.println("-----Closing connection-----");
@@ -54,6 +60,53 @@ public class TCPServerBitStuffing {
         } catch (IOException i) {
             System.out.println(i);
         }
+    }
+
+    public static String bitDestuffing(String stuffedData) {
+        // Remove flag bytes
+        stuffedData = stuffedData.substring(8, stuffedData.length() - 8);
+        
+        // Perform destuffing
+        StringBuilder destuffedData = new StringBuilder();
+        int count = 0;
+        for (int i = 0; i < stuffedData.length(); i++) {
+            char ch = stuffedData.charAt(i);
+            if (ch == '1') {
+                count++;
+                destuffedData.append(ch);
+                if (count == 5 && i != stuffedData.length() - 1) {
+                    i++;
+                    count = 0;
+                }
+            } else {
+                count = 0;
+                destuffedData.append(ch);
+            }
+        }
+        return destuffedData.toString();
+    }
+
+    public void handleClientMessage(List<String> messages) {
+        List<String> destuffedMessages = new ArrayList<>();
+        for (String message : messages) {
+            destuffedMessages.add(bitDestuffing(message));
+        }
+        System.out.println("Destuffed Message>> " + elemToStr(destuffedMessages));
+    }
+
+    public String elemToStr(List<String> destuffedMessages) {
+        StringBuilder result = new StringBuilder();
+        for (String str : destuffedMessages) {
+            result.append(str); // Append each string
+        }
+
+        // Remove the last space
+        if (result.length() > 0) {
+            result.setLength(result.length() - 1);
+        }
+
+        // Print the result
+        return result.toString();
     }
 
     public static void main(String args[]) {
