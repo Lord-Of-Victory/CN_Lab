@@ -32,11 +32,9 @@ public class TCPServer {
                 try {
                     // READ From Client
                     data = in.readUTF();
-                    System.out.println("Client>> Data:" + data);
-                    String key;
-                    key = in.readUTF();
-                    System.out.println("Client>> Key:" + key);
-                    CRC.Receiver(data + CRC.Mod2Div(data + new String(new char[key.length() - 1]).replace("\0", "0"), key), key);
+                    System.out.println("Client>> " + data);
+                    int hammingCode[]=HammingCodeCheckerCorrector.checkAndCorrect(data);
+                    System.out.println("Decoded Data: " + HammingCodeCheckerCorrector.decodeHammingCode(hammingCode));
                     if (data.equals("END")) {//
                         break;//
                     } //

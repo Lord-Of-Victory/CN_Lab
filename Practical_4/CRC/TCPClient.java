@@ -2,7 +2,6 @@
 // package TCP_Connection;
 import java.io.*;
 import java.net.*;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,13 +35,7 @@ public class TCPClient {
             try {
                 // SEND to Server
                 System.out.printf(">> ");
-                // line = input.readLine();
-                // List<String> sendArray=inputToArray(line);
-                // stuffedLine = byteStuffing(line);
-                // for (int i = 0; i < sendArray.size(); i++) {
-                //     String iStr=sendArray.get(i);
-                //     out.writeUTF(iStr);
-                // }
+            
                 KeyValidityCheck KeyValChk = new KeyValidityCheck();
                 String key = KeyValChk.key();
                 DataValidityCheck dataValChk = new DataValidityCheck();
@@ -52,15 +45,6 @@ public class TCPClient {
                 if (line.equals("END")) {//
                     break;//
                 } //
-
-                // // READ From Server
-                // DataInputStream in = new DataInputStream(new
-                // BufferedInputStream(socket.getInputStream()));//
-                // anLine = in.readUTF();//
-                // System.out.println("Server>> " + anLine);//
-                // if (anLine.equals("END")) {//
-                // break;//
-                // } //
 
             } catch (IOException i) {
                 System.out.println(i);
